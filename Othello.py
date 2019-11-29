@@ -159,6 +159,11 @@ class Othello(object):
             step_list = self.get_steps()
             # 无可下棋子则直接pass
             if len(step_list) == 0:
+                # 输出提示
+                if self.turn == -1:
+                    print('AI has to pass its turn!')
+                else:
+                    print('You have to pass your turn!')
                 self.pass_time += 1
                 self.turn = -self.turn
                 continue
