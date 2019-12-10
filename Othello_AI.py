@@ -28,17 +28,17 @@ class Othello_AI(object):
         self.valid_board = valid_board
 
 
-    def search(self):
+    def search(self, turn):
         '''
             搜索函数
             参数：
-                None
+                turn: 当前执棋方
             返回值：
                 (row, col): 选择的下一步棋
         '''
         time.sleep(2)
         # 此时轮到AI执棋
-        self.turn = -1
+        self.turn = turn
         # 获取落子列表
         step_list = self.get_steps()
         # 随机返回一个
