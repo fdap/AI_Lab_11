@@ -10,9 +10,11 @@
 import numpy as np
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
+#import pygame
 import time
 from Othello_AI import *
+from MCTS import *
+from policy_value_net import *
 
 
 class Othello(object):
@@ -46,6 +48,9 @@ class Othello(object):
         self.pass_time = 0
         # 游戏状态
         self.if_gameover = False
+        # 记录最近一步落子之后的落子情况
+        self.record_1 = []
+        self.record_2 = []
         # 添加开局便存在的棋子
         self.add_init_coins()
 
@@ -172,6 +177,12 @@ class Othello(object):
             返回值：
                 step_list: 当前执棋方可下的棋子
         '''
+        # 进行记录
+        if self.turn == 1:
+            self.record_1.append((row, col))
+        else:
+            self.record_2.append((row, col))
+
         # 重置pass次数
         self.pass_time = 0
 
@@ -232,7 +243,35 @@ class Othello(object):
         return num1, num2
 
 
-    def play_with_ai(self):
+    def ai_vs_ai(self, ai_1, ai_2):
+        '''
+            ai与ai对弈
+            参数：
+                ai_1, ai_2: 两个ai
+            返回值：
+                winner: ai_1胜利为1,否则为-1
+        '''
+        self.initialize_game()
+        
+        # 下到终局
+        while self.if_gameover == False:
+            if self.turn == 1:
+                row, col = ai_1.search(self)
+                self.record_2 = []
+                self.step(row, col)
+            else:
+                row, col = ai_2.search(self)
+                self.record_1 = []
+                self.step(row, col)
+
+        # 判断胜负
+        count_1, count_2 = self.get_state()
+        winner = 1 if count_1 >= count_2 else -1
+
+        return winner
+
+
+    def play_with_ai(self, ai):
         '''
             与AI进行一场游戏
             参数：
@@ -244,8 +283,6 @@ class Othello(object):
         self.initialize_game()
         # 绘制初始化
         self.initialize_draw()
-        # 初始化AI
-        self.ai = Othello_AI(self.board, self.valid_board)
 
         # 读取先手方
         player_turn = input('First(1) or second(-1)?')
@@ -258,28 +295,22 @@ class Othello(object):
             # 绘制棋盘
             self.draw()
             
-            # 无可下棋子则直接pass
-            if len(self.step_list) == 0:
-                # 输出提示
-                if self.turn == -1:
-                    print('AI has to pass its turn!')
-                else:
-                    print('You have to pass your turn!')
-                self.pass_turn()
-                continue
-
             if self.turn != player_turn:
                 # AI执棋
                 cur_time = time.time()
 
                 # 获取落子位置
-                row, col = self.ai.search(self.turn)
+                row, col = ai.search(self)
+                if self.turn == 1:
+                    self.record_2 = []
+                else:
+                    self.record_1 = []
 
                 # 落子
                 self.step(row, col)
 
                 # 输出记录
-                score = 0
+                score = self.get_state()
                 print('AI turn: {}, score: {}, time cost: {}'.format((row, col), \
                     score, time.time()-cur_time))
             else:
@@ -304,12 +335,13 @@ class Othello(object):
                                 self.step(row, col)
 
                                 # 输出记录
-                                score = 0
+                                score = self.get_state()
                                 print('Player turn: {}, score: {}'.format((row, col), score))
 
                                 # 跳出等待事件循环
                                 break
 
+        self.draw()                      
         # 结束后计算双方的棋子数
         if player_turn == -1:
             ai_count, player_count = self.get_state()
@@ -415,4 +447,7 @@ class Othello(object):
 
 if __name__ == "__main__":
     game = Othello()
-    game.play_with_ai()
+    net = PolicyValueNetwork(file_path='model.pkl')
+    ai_1 = MCTS(50, 5, net.application)
+    ai_2 = MCTS(500, 5, net.application)
+    game.play_with_ai(ai_1)
