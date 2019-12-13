@@ -28,21 +28,6 @@ class Othello(object):
 
         # 参数设置
         self.board_size = board_size
-        self.SCREEN_SIZE = 820
-        self.BOARD_LEN = 780
-        self.CELL_SIZE = self.BOARD_LEN // self.board_size
-        self.BACKGROUND_COLOR = pygame.Color('seagreen')
-        self.LINE_COLOR = pygame.Color('black')
-        self.PLAYER_1_COLOR = pygame.Color('black')
-        self.PLAYER_2_COLOR = pygame.Color('white')
-        self.NEXT_STEP_COLOR = pygame.Color('pink')
-
-        # 确定棋盘四条边的位置
-        self.left = (self.SCREEN_SIZE - self.BOARD_LEN) // 2
-        self.right = self.left + self.CELL_SIZE * self.board_size
-        self.top = (self.SCREEN_SIZE - self.BOARD_LEN) // 2
-        self.bottom = self.top + self.CELL_SIZE * self.board_size
-
         # 执棋方，黑棋为先手(1)，白棋为后手(-1)
         self.turn = 1
 
@@ -85,6 +70,9 @@ class Othello(object):
             返回值：
                 None
         '''
+        # 覆盖画面
+        self.screen.fill(self.BACKGROUND_COLOR)
+
         # 绘制方框
         for i in range(self.board_size+1):
             pygame.draw.line(self.screen, self.LINE_COLOR, \
@@ -113,7 +101,7 @@ class Othello(object):
             pygame.draw.circle(self.screen, self.NEXT_STEP_COLOR, position, int(self.CELL_SIZE*0.1))
 
         # 刷新
-        pygame.display.update()
+        pygame.display.flip()
 
 
     def add_init_coins(self):
@@ -139,6 +127,22 @@ class Othello(object):
             返回值:
                 None
         '''
+        # 参数设置
+        self.SCREEN_SIZE = 820
+        self.BOARD_LEN = 780
+        self.CELL_SIZE = self.BOARD_LEN // self.board_size
+        self.BACKGROUND_COLOR = pygame.Color('seagreen')
+        self.LINE_COLOR = pygame.Color('black')
+        self.PLAYER_1_COLOR = pygame.Color('black')
+        self.PLAYER_2_COLOR = pygame.Color('white')
+        self.NEXT_STEP_COLOR = pygame.Color('pink')
+
+        # 确定棋盘四条边的位置
+        self.left = (self.SCREEN_SIZE - self.BOARD_LEN) // 2
+        self.right = self.left + self.CELL_SIZE * self.board_size
+        self.top = (self.SCREEN_SIZE - self.BOARD_LEN) // 2
+        self.bottom = self.top + self.CELL_SIZE * self.board_size
+
         # 初始化
         pygame.init()
         # 屏幕设置
@@ -190,6 +194,10 @@ class Othello(object):
 
         # 获取可下的位置列表
         self.get_steps()
+
+        # 自动pass
+        while self.if_gameover == False and self.step_list == {}:
+            self.pass_turn()
 
         return self.step_list
 
